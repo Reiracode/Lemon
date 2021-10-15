@@ -331,8 +331,8 @@ button.active {
 }
 .searching {
   position: absolute;
-  left: 20px;
-  top: 15px;
+  left: 18px;
+  top: 17px;
 }
 input#findspots {
   border-radius: 150%;
@@ -343,12 +343,13 @@ input#findspots {
   padding: 10px;
   width: 50px;
   height: 50px;
-  transition: width 0.4s ease-in-out, border-radius 0.8s ease-in-out;
+  transition: width 0.2s ease-in-out, border-radius 0.2s ease-in-out 0.2s;
 }
 input#findspots:hover,input#findspots.click{
+  cursor: pointer;
   border-radius: 0;
   width: 400px;
-  transition: width 0.8s ease-in-out, border-radius 0.4s ease-in-out;
+  transition: border-radius 0.2s ease-in-out, width 0.2s ease-in-out 0.2s;
 }
 
 // [class*="twicon-"],

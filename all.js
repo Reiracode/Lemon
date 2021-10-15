@@ -2,8 +2,8 @@ let yourPositon, infoData, filterData;
 const loading = document.getElementById("loading");
 const maskSize = document.querySelector("#mask_sel");
 // 洧杰申請
-//   let AppID = '4ad9f73726a0409a9376afd2b59e59a7';
-//  let AppKey = 'iR-j7mJI1CY924a-xfd6vhXZciM';
+//let AppID = '4ad9f73726a0409a9376afd2b59e59a7';
+//let AppKey = 'iR-j7mJI1CY924a-xfd6vhXZciM';
 
 function getAuthorizationHeader() {
   //  填入自己 ID、KEY 開始
@@ -29,27 +29,33 @@ const api =
 
 // get bike position nearby
 let a1 =
-  "https://ptx.transportdata.tw/MOTC/v2/Bike/Station/NearBy?$top=30&$spatialFilter=nearby(25.0375421148651%2C%20121.50675594797%2C%201000)&$format=JSON";
+  "https://ptx.transportdata.tw/MOTC/v2/Bike/Station/NearBy?$top=30&$spatialFilter=nearby(25.0375421148651,121.50675594797,1000)&$format=JSON";
+
 let a2 =
   "https://ptx.transportdata.tw/MOTC/v2/Bike/Availability/NearBy?$top=30&$spatialFilter=nearby(25.0375421148651%2C%20121.50675594797%2C%201000)&$format=JSON";
 
-function mergeArrayObjects(a1, a2) {
-  return a1.map((item, i) => {
-    if (item.StationUID === a2[i].StationUID) {
-      return Object.assign({}, item, a2[i]);
-    }
-  });
-}
-//
+// 自行
 let bike_path =
+  "https://ptx.transportdata.tw/MOTC/v2/Cycling/Shape/Taipei?$top=10000&$format=JSON";
+let bike_path2 =
   "https://ptx.transportdata.tw/MOTC/v2/Cycling/Shape/NewTaipei?$top=5500&$format=JSON";
-// let bike_path = "https://ptx.transportdata.tw/MOTC/v2/Cycling/Shape/Taipei?$top=500&$format=JSON"
+  // let bike_path = "https://ptx.transportdata.tw/MOTC/v2/Cycling/Shape/Taipei?$top=500&$format=JSON"
+
+  // Bike position num
+  function mergeArrayObjects(a1, a2) {
+    return a1.map((item, i) => {
+      if (item.StationUID === a2[i].StationUID) {
+        return Object.assign({}, item, a2[i]);
+      }
+    });
+  };
 
 const getBike = async () => {
   const response = await fetch(a1, {
     headers: getAuthorizationHeader(),
   });
   const json = await response.json();
+
   return json;
 };
 
@@ -68,29 +74,15 @@ const getPath = async () => {
   const json = await response.json();
   return json;
 };
+const getPath2 = async () => {
+  const response = await fetch(bike_path2, {
+    headers: getAuthorizationHeader(),
+  });
+  const json = await response.json();
+  return json;
+};
 
 let ballsssss, tesing, a3;
-async function getBikes() {
-  const [a1, a2, bikepath] = await Promise.all([
-    getBike(),
-    getBike1(),
-    getPath(),
-  ]);
-
-  // bike position avaiable
-  a3 = mergeArrayObjects(a1, a2);
-  console.log(a3);
-  console.log(bikepath);
-  tesing = bikepath;
-  // bike path
-  ballsssss = bikepath.filter(({ RouteName, Geometry }) => {
-    return RouteName.indexOf("自行車道") > -1;
-  });
-
-  console.log(ballsssss);
-}
-
-getBikes();
 
 let mymarker,
   map,
@@ -180,9 +172,23 @@ const getAllPoints = async () => {
   return json;
 };
 
+const getTest = async (a) => {
+  console.log(a);
+  let a1 = `https://ptx.transportdata.tw/MOTC/v2/Bike/Station/NearBy?$top=30&$spatialFilter=nearby(${a[0]},${a[1]},1000)&$format=JSON`;
+  console.log(a1);
+  const response = await fetch(a1, {
+    headers: getAuthorizationHeader(),
+  });
+  const json = await response.json();
+  console.log(json);
+  return json;
+};
+
 async function getPoints() {
   const [position, points] = await Promise.all([getPosition(), getAllPoints()]);
   yourPositon = position;
+  console.log(yourPositon);
+  console.log(getTest(yourPositon));
   infoData = points;
   infoData = infoData.filter(({ Name, DescriptionDetail }) => {
     return !!DescriptionDetail
@@ -192,7 +198,7 @@ async function getPoints() {
       : "" || Name.indexOf("國立中正紀念堂") !== -1;
   });
 
-  // console.log(yourPositon);
+  console.log(yourPositon);
   console.log(infoData);
   drawMap();
   nearestStore();
@@ -200,6 +206,33 @@ async function getPoints() {
 }
 
 getPoints();
+
+async function getBikes() {
+  const [a1, a2, bikepath, bikepath2] = await Promise.all([
+    getBike(),
+    getBike1(),
+    getPath(),
+    getPath2()
+  ]);
+
+  // bike position avaiable
+  a3 = mergeArrayObjects(a1, a2);
+  console.log(a3);
+  console.log(bikepath);
+  
+  // tesing = bikepath;
+   tesing = bikepath.concat(bikepath2);
+
+
+  // bike path
+  ballsssss = bikepath.filter(({ RouteName, Geometry }) => {
+    return RouteName.indexOf("自行車道") > -1;
+  });
+
+  console.log(ballsssss);
+}
+
+getBikes();
 
 // map on load  //markerClusterGroup Customising the Clustered Markers
 function drawMap() {
@@ -225,15 +258,11 @@ function drawMap() {
     },
   });
 
-
-
-
-
-    const attribution =
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-    const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-    const tiles = L.tileLayer(tileUrl, { attribution });
-tiles.addTo(mymap);
+  const attribution =
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const tiles = L.tileLayer(tileUrl, { attribution });
+  tiles.addTo(mymap);
 }
 
 //重新整理
@@ -265,10 +294,19 @@ function getMymarker() {
     className: "myDivIcon",
   });
 
-  mymarker = L.marker(yourPositon, { icon: twnIcons() })
+  console.log(yourPositon);
+  console.log(twnIcons());
+  mymarker = L.marker(yourPositon, { icon: greenIcon })
     .addTo(mymap)
     .bindPopup("You're here!")
     .openPopup();
+
+  L.circle(yourPositon, {
+    color: "white",
+    fillColor: "white",
+    fillOpacity: 0.1,
+    radius: 500,
+  }).addTo(mymap);
 }
 
 //經緯度算距離
@@ -277,8 +315,8 @@ function getDistance(origin, destination) {
   lng1 = origin[1];
   lat2 = destination[0];
   lng2 = destination[1];
-  console.log(lat1, lng1)
-    console.log(lat2, lng2);
+  // console.log(lat1, lng1);
+  // console.log(lat2, lng2);
   return (
     2 *
     6378.137 *
@@ -358,12 +396,14 @@ function renderMask() {
 
   let s_list = document.querySelector(".datalist");
   let focus = filterData[0].Position;
-  mymap.setView([focus.PositionLat, focus.PositionLon], 15);
+  // mymap.setView([focus.PositionLat, focus.PositionLon], 15);
   // StationPosition: GeoHash: "wsqqkyxyv";
   // PositionLat: 25.041778;
   // PositionLon: 121.508693;
+
+  // 目前的位置距離 排序 ubike租借站
   let bikedata = a3.sort(({ StationPosition: a }, { StationPosition: b }) => {
-    console.log(a)
+    // console.log(a);
     return (
       getDistance(
         [yourPositon[0], yourPositon[1]],
@@ -374,25 +414,21 @@ function renderMask() {
         [b.PositionLat, b.PositionLon]
       )
     );
-
-
-
   });
   console.log(bikedata);
   console.log(yourPositon);
-let sss = bikedata.forEach((item) => {
+  // 算各點的距離 ubike租借站
+  let sss = bikedata.forEach((item) => {
     // console.log(item.StationPosition);
     let distance = getDistance(
       [yourPositon[0], yourPositon[1]],
       [item.StationPosition.PositionLat, item.StationPosition.PositionLon]
     );
-   
-  console.log(distance)
-  
-  
-});
 
+    // console.log(distance);
+  });
 
+  getMymarker();
 
   let el = "";
   let alldata = filterData.sort(({ Position: a }, { Position: b }) => {
@@ -564,6 +600,23 @@ let sss = bikedata.forEach((item) => {
       });
 
       items.geolocation = newsa;
+
+      // console.log(items.geolocation);
+
+      // antPath
+      var antPath = L.polyline.antPath;
+      var path = antPath(items.geolocation, {
+        paused: false,
+        reverse: false,
+        delay: 3000,
+        dashArray: [10, 20],
+        weight: 5,
+        opacity: 0.8,
+        color: "#0000FF",
+        pulseColor: "#FFFFFF",
+      });
+      path.addTo(mymap);
+
       return items;
     });
 
@@ -571,20 +624,34 @@ let sss = bikedata.forEach((item) => {
   let route = a[0].geolocation;
   console.log(route); //no reverse
 
-  for (var i = 0, latlngs = [], len = route.length; i < len; i++) {
-    latlngs.push(new L.LatLng(route[i][0], route[i][1]));
-  }
-  console.log(latlngs[0]);
-  console.log(latlngs[len - 1]);
+  // antPath
+  // var antPath = L.polyline.antPath;
+  // var path = antPath(route, {
+  //   paused: false,
+  //   reverse: false,
+  //   delay: 3000,
+  //   dashArray: [10, 20],
+  //   weight: 5,
+  //   opacity: 0.5,
+  //   color: "#0000FF",
+  //   pulseColor: "#FFFFFF",
+  // });
+  // path.addTo(mymap);
 
-  var path = L.polyline(latlngs);
-  //  var map = L.map("map");
-  mymap.fitBounds(L.latLngBounds(latlngs));
-  mymap.addLayer(L.marker(latlngs[0]));
-  mymap.addLayer(L.marker(latlngs[len - 1]));
+  // snakeAni;
+  // for (var i = 0, latlngs = [], len = route.length; i < len; i++) {
+  //   latlngs.push(new L.LatLng(route[i][0], route[i][1]));
+  // }
+  // console.log(latlngs[0]);
+  // console.log(latlngs[len - 1]);
 
-  mymap.addLayer(path);
-  path.snakeIn();
+  // var path = L.polyline(latlngs);
+  // mymap.fitBounds(L.latLngBounds(latlngs));
+  // mymap.addLayer(L.marker(latlngs[0]));
+  // mymap.addLayer(L.marker(latlngs[len - 1]));
+
+  // mymap.addLayer(path);
+  // path.snakeIn();
 }
 
 function getStore(e) {

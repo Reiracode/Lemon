@@ -364,8 +364,8 @@ button.active {
 
 .searching {
   position: absolute;
-  left: 20px;
-  top: 15px;
+  left: 18px;
+  top: 17px;
 }
 
 input#findspots {
@@ -377,15 +377,16 @@ input#findspots {
   padding: 10px;
   width: 50px;
   height: 50px;
-  -webkit-transition: width 0.4s ease-in-out, border-radius 0.8s ease-in-out;
-  transition: width 0.4s ease-in-out, border-radius 0.8s ease-in-out;
+  -webkit-transition: width 0.2s ease-in-out, border-radius 0.2s ease-in-out 0.2s;
+  transition: width 0.2s ease-in-out, border-radius 0.2s ease-in-out 0.2s;
 }
 
 input#findspots:hover, input#findspots.click {
+  cursor: pointer;
   border-radius: 0;
   width: 400px;
-  -webkit-transition: width 0.8s ease-in-out, border-radius 0.4s ease-in-out;
-  transition: width 0.8s ease-in-out, border-radius 0.4s ease-in-out;
+  -webkit-transition: border-radius 0.2s ease-in-out, width 0.2s ease-in-out 0.2s;
+  transition: border-radius 0.2s ease-in-out, width 0.2s ease-in-out 0.2s;
 }
 
 .leaflet-container a.leaflet-popup-close-button {
